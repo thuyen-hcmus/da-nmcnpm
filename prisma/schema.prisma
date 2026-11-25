@@ -1,0 +1,194 @@
+// Mô hình dữ liệu: specs/001-interactive-ai-lectures/data-model.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime      @default(now())
+  authSessions AuthSession[]
+  lectures     Lecture[]
+  sessions     Session[]
+}
+
+model AuthSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Lecture {
+  id        String         @id @default(cuid())
+  ownerId   String
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title     String
+  outline   String         @default("")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  slides    Slide[]
+  questions QuizQuestion[]
+  sessions  Session[]
+}
+
+/// template: TITLE | CONTENT | QUIZ ; source: MANUAL | AI | PPTX
+model Slide {
+  id         String        @id @default(cuid())
+  lectureId  String
+  lecture    Lecture       @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  position   Int
+  template   String        @default("CONTENT")
+  title      String        @default("")
+  body       String        @default("")
+  notes      String        @default("")
+  questionId String?
+  question   QuizQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  source     String        @default("MANUAL")
+  isAiDraft  Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([lectureId, position])
+}
+
+/// status: DRAFT | APPROVED ; source: MANUAL | AI
+model QuizQuestion {
+  id             String    @id @default(cuid())
+  lectureId      String
+  lecture        Lecture   @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  prompt         String
+  /// JSON string[] (2–6)
+  options        String
+  correctIndex   Int
+  explanation    String    @default("")
+  /// JSON string[] — slide căn cứ
+  sourceSlideIds String    @default("[]")
+  status         String    @default("DRAFT")
+  source         String    @default("MANUAL")
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  slides         Slide[]
+  runs           QuizRun[]
+}
+
+/// status: LIVE | ENDED — nguồn trạng thái duy nhất của phiên
+model Session {
+  id                  String            @id @default(cuid())
+  lectureId           String
+  lecture             Lecture           @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  ownerId             String
+  owner               User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  code                String            @unique
+  projectorTokenHash  String
+  lectureTitle        String
+  outline             String            @default("")
+  status              String            @default("LIVE")
+  currentIndex        Int               @default(0)
+  maxPublishedIndex   Int               @default(0)
+  showJoinQr          Boolean           @default(true)
+  spotlightQuestionId String?
+  stateVersion        Int               @default(1)
+  startedAt           DateTime          @default(now())
+  endedAt             DateTime?
+  slides              SessionSlide[]
+  quizRuns            QuizRun[]
+  participants        Participant[]
+  studentQuestions    StudentQuestion[]
+  reactions           Reaction[]
+}
+
+model SessionSlide {
+  id             String  @id @default(cuid())
+  sessionId      String
+  session        Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  index          Int
+  template       String
+  title          String
+  body           String
+  notes          String
+  quizQuestionId String?
+
+  @@unique([sessionId, index])
+}
+
+/// status: OPEN | CLOSED | PUBLISHED
+model QuizRun {
+  id           String       @id @default(cuid())
+  sessionId    String
+  session      Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId   String?
+  question     QuizQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  prompt       String
+  options      String
+  correctIndex Int
+  explanation  String
+  status       String       @default("OPEN")
+  onScreen     Boolean      @default(true)
+  openedAt     DateTime     @default(now())
+  closedAt     DateTime?
+  publishedAt  DateTime?
+  answers      Answer[]
+}
+
+model Participant {
+  id          String            @id @default(cuid())
+  sessionId   String
+  session     Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tokenHash   String            @unique
+  displayName String?
+  joinedAt    DateTime          @default(now())
+  lastSeenAt  DateTime          @default(now())
+  answers     Answer[]
+  questions   StudentQuestion[]
+  reactions   Reaction[]
+}
+
+model Answer {
+  id            String      @id @default(cuid())
+  quizRunId     String
+  quizRun       QuizRun     @relation(fields: [quizRunId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  optionIndex   Int
+  createdAt     DateTime    @default(now())
+
+  @@unique([quizRunId, participantId])
+}
+
+/// status: NEW | ANSWERED | HIDDEN
+model StudentQuestion {
+  id            String      @id @default(cuid())
+  sessionId     String
+  session       Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  text          String
+  status        String      @default("NEW")
+  createdAt     DateTime    @default(now())
+}
+
+/// kind: UNDERSTOOD | CONFUSED
+model Reaction {
+  id            String      @id @default(cuid())
+  sessionId     String
+  session       Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  slideIndex    Int
+  kind          String
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([participantId, slideIndex])
+}

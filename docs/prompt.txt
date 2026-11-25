@@ -1,0 +1,268 @@
+# PROMPT XÂY DỰNG NỀN TẢNG TRÌNH CHIẾU GIẢNG DẠY TƯƠNG TÁC CÓ AI HỖ TRỢ
+
+## 1. Mục tiêu dự án
+
+Xây dựng ứng dụng web cho phép giảng viên soạn slide, trình chiếu và tương tác với cả lớp ngay trong buổi học. Giảng viên điều khiển bài giảng trên laptop, máy chiếu hiển thị nội dung chung, sinh viên quét mã QR trên điện thoại để theo dõi slide, trả lời câu hỏi trắc nghiệm, đặt câu hỏi và gửi biểu cảm.
+
+Điểm cốt lõi: giảng viên dùng phản hồi của lớp để quyết định giảng tiếp hay dừng lại giải thích. AI hỗ trợ khâu soạn bài và tạo câu hỏi; giảng viên luôn là người quyết định nội dung nào được sử dụng và khi nào công bố kết quả.
+
+Đây là hệ thống "lớp học tương tác" (đồng bộ thời gian thực + kiểm soát quyền người xem), KHÔNG phải chỉ là trình tạo slide có thêm nút AI.
+
+## 2. Phạm vi chức năng
+
+### 2.1. Giảng viên – Trước buổi học (Soạn bài)
+
+- Đăng ký, đăng nhập, quản lý danh sách bài giảng (tạo, sửa, xóa, nhân bản).
+- Trình soạn thảo slide giới hạn độ phức tạp: chỉ 3 mẫu slide (tiêu đề, nội dung, quiz); chỉnh sửa văn bản, thứ tự slide, ghi chú thuyết trình, dàn ý.
+- Ba cách bắt đầu bài giảng:
+  1. Đã có nội dung: dán văn bản; AI rút gọn, chia thành các slide hoặc gợi ý ghi chú thuyết trình.
+  2. Mới có ý tưởng: nhập chủ đề, đối tượng học, số slide mong muốn; AI tạo bộ slide nháp để giảng viên sửa.
+  3. Đã có PowerPoint: nhập tệp .pptx, trích xuất tiêu đề và văn bản vào trình soạn thảo, cho phép sửa và nhờ AI viết lại/bổ sung. Không cần giữ hiệu ứng và bố cục phức tạp.
+- Chọn một hoặc vài slide và yêu cầu AI tạo quiz từ nội dung đã chọn. Mỗi câu hỏi nháp gồm: nội dung câu hỏi, các lựa chọn, đáp án đúng, giải thích ngắn, slide làm căn cứ.
+- Giảng viên sửa và bắt buộc duyệt từng câu hỏi trước khi đưa vào buổi học (câu chưa duyệt không thể mở trong phiên).
+- Hiển thị rõ slide căn cứ của từng câu hỏi để giảng viên đối chiếu khi AI gợi ý sai hoặc hỏi nội dung chưa dạy.
+
+### 2.2. Giảng viên – Trong buổi học (Phiên trình chiếu)
+
+- Tạo phiên trình chiếu từ một bài giảng; sinh QR và link tham gia.
+- Giao diện laptop: xem slide hiện tại, slide kế tiếp, ghi chú riêng, dàn ý; chuyển slide; chia sẻ QR/link; mở/đóng quiz; xem câu hỏi và biểu cảm của lớp.
+- Tách 3 thao tác quiz: Mở quiz → Đóng quiz → Công bố kết quả. Khi quiz mở, giảng viên thấy số người đã nộp nhưng lớp chưa thấy lựa chọn; kết quả chỉ chiếu lên máy chiếu khi giảng viên chọn.
+- Câu hỏi của sinh viên chỉ hiện trên laptop giảng viên theo mặc định; giảng viên chọn câu để trả lời hoặc "chiếu cho cả lớp" (duyệt trước khi hiện công khai).
+- Xem tổng hợp biểu cảm ("Em hiểu" / "Em chưa rõ") để quyết định giảng tiếp hay dừng giải thích.
+- Kết thúc phiên; xem báo cáo sau buổi (kết quả quiz, câu hỏi, thống kê biểu cảm).
+
+### 2.3. Máy chiếu (Màn hình chung)
+
+- Hiển thị slide đang giảng, đồng bộ theo giảng viên.
+- Có thể bật mã QR lúc mời lớp tham gia hoặc gửi link; chiếu kết quả tổng hợp quiz khi giảng viên chọn.
+- Không hiển thị ghi chú riêng, bảng điều khiển hay câu hỏi chưa được duyệt.
+
+### 2.4. Sinh viên (Điện thoại)
+
+- Quét QR hoặc mở link để vào đúng phiên; không bắt buộc tạo tài khoản (tham gia ẩn danh hoặc nhập tên hiển thị – PO chốt).
+- Mặc định tự động theo slide giảng viên đang chiếu.
+- Xem lại các slide đã chiếu; bấm "Về bài giảng" để quay lại slide hiện tại; KHÔNG xem được slide chưa công bố.
+- Làm quiz đang mở (mỗi người một lượt nộp, không nộp được sau khi quiz đóng).
+- Đặt câu hỏi cho giảng viên; gửi biểu cảm "Em hiểu" / "Em chưa rõ".
+- Không xem được ghi chú riêng, không điều khiển slide, không mở/đóng quiz.
+
+## 3. Quy tắc nghiệp vụ cốt lõi (PO phải xác nhận)
+
+1. QR dẫn vào PHIÊN học, không dẫn tới một slide cố định; vào muộn vẫn thấy đúng slide đang chiếu.
+2. Quyền xem của sinh viên do SERVER kiểm tra: chỉ trả về slide có chỉ số ≤ slide cao nhất đã công bố; ghi chú riêng và slide chưa chiếu không bao giờ được gửi xuống thiết bị sinh viên (không chỉ ẩn ở giao diện).
+3. Vai trò: giảng viên (chủ phiên), máy chiếu (chỉ xem công khai), sinh viên (người tham gia). Mọi lệnh điều khiển (đổi slide, mở/đóng quiz, công bố kết quả) chỉ chấp nhận từ giảng viên đã xác thực.
+4. Quiz có vòng đời: Nháp → Đã duyệt → Đang mở → Đã đóng → Đã công bố kết quả. Mỗi sinh viên chỉ được tính 1 lượt nộp/câu; không nhận bài sau khi đóng.
+5. Nội dung do AI tạo luôn ở trạng thái "nháp" cho tới khi giảng viên duyệt.
+6. Đồng bộ: khi giảng viên chuyển slide, máy chiếu và điện thoại cập nhật không cần tải lại trang; xử lý mất kết nối/kết nối lại (tự lấy lại trạng thái hiện tại).
+7. Ngoại lệ cần xử lý: sinh viên vào sau khi phiên kết thúc, mã phiên không hợp lệ, mất mạng, nộp trùng, nhiều giảng viên mở cùng một phiên, AI lỗi/timeout/trả về sai định dạng, tệp .pptx hỏng hoặc quá lớn.
+
+## 4. Phạm vi MVP và tiêu chí demo cuối kỳ
+
+Giữ cả ba cách tạo slide nhưng giới hạn độ phức tạp của trình soạn thảo (3 mẫu slide). Ưu tiên làm chắc luồng trình chiếu và tương tác trước khi thêm hiệu ứng, nhiều mẫu thiết kế hoặc chỉnh sửa đồng thời. Không làm: chỉnh sửa cộng tác nhiều người, giữ nguyên hiệu ứng PowerPoint, nhiều nhà cung cấp AI.
+
+Demo dùng 1 laptop, 1 màn hình chiếu và ít nhất 2 điện thoại, phải chứng minh 4 việc:
+
+1. **Đồng bộ đúng:** giảng viên chuyển slide thì máy chiếu và điện thoại cập nhật không cần tải lại; người xem xem lại được nhưng không vào được slide chưa công bố.
+2. **Tách đúng quyền:** điện thoại không xem được ghi chú riêng, không điều khiển slide, không mở/đóng quiz.
+3. **Thu phản hồi đúng:** hai điện thoại gửi đáp án, câu hỏi, biểu cảm; không tính trùng lượt nộp; không nhận bài sau khi đóng quiz; chỉ chiếu kết quả khi giảng viên chọn.
+4. **AI hỗ trợ thật:** tạo slide nháp từ ý tưởng, chọn một slide để tạo quiz, sửa câu hỏi/đáp án, rồi đưa bản đã duyệt vào phiên trình chiếu.
+
+Báo cáo (môn Kiến trúc phần mềm) phải giải thích hai quyết định kiến trúc qua chính màn demo:
+- Hệ thống đồng bộ bộ ba giao diện như thế nào (kênh thời gian thực, nguồn trạng thái duy nhất của phiên, xử lý kết nối lại).
+- Hệ thống kiểm tra quyền của người xem ở đâu (kiểm tra phía server theo vai trò và theo slide đã công bố).
+
+### Kịch bản mẫu để làm bộ dữ liệu seed và test E2E
+"Hai người cùng đặt một ghế trên TicketBox":
+1. Soạn bài: giảng viên nhập ý tưởng "Giải thích vì sao hai người không thể cùng mua một ghế cho một suất chiếu"; AI tạo 6 slide nháp; giảng viên sửa slide 4: nhìn thấy ghế trống không đồng nghĩa với đã giữ được ghế.
+2. Vào lớp: chiếu QR ở slide đầu; khi đang ở slide 4, sinh viên xem lại slide 2, bấm "Về bài giảng" để trở về slide 4, không mở được slide 5.
+3. Kiểm tra nhanh: quiz AI tạo từ slide 4, đã duyệt: "An và Bình cùng nhìn thấy ghế A5 đang trống. Chỉ riêng việc nhìn thấy ghế trống có nghĩa là cả hai đã giữ được ghế không?" Đáp án: Không.
+4. Điều chỉnh cách giảng: 12/20 sinh viên trả lời sai; giảng viên xem kết quả trên laptop, đóng quiz rồi mới chiếu biểu đồ; thay vì sang slide tiếp theo, giảng viên minh họa hai yêu cầu giữ ghế gần như cùng lúc, cho lớp thảo luận và đặt câu tương tự để kiểm tra lại.
+
+## 5. Agent Team
+
+### 5.0. Cách định nghĩa agent
+
+Mỗi vai trò dưới đây phải được định nghĩa thành một file subagent riêng trong thư mục `.claude/agents/`, đặt tên theo vai trò: `.claude/agents/po.md`, `ui-ux.md`, `architect.md`, `backend.md`, `frontend.md`, `qa.md`.
+
+Mỗi file bắt buộc theo đúng mẫu sau: phần đầu file là YAML front matter gồm `name`, `description`, `tools`, `model`; phần thân file là hướng dẫn chi tiết (vai trò, nhiệm vụ, đầu ra, skill/MCP cần dùng, quy tắc bàn giao) viết cho chính agent đó đọc và làm theo.
+
+```
+---
+name: <tên-vai-trò, viết thường, nối bằng dấu gạch ngang>
+description: <mô tả ngắn gọn agent làm gì và khi nào nên dùng>
+tools: <danh sách tool được phép dùng, ngăn cách bằng dấu phẩy>
+model: sonnet
+---
+
+<Hướng dẫn chi tiết cho agent: vai trò, nhiệm vụ, đầu ra, skill/MCP cần thiết, quy tắc bàn giao>
+```
+
+### 5.1. PO – Product Owner/Business Analyst
+
+**Vai trò:** Chuyển yêu cầu của đồ án thành đặc tả rõ ràng, có thể phát triển và kiểm thử; điều phối toàn team.
+
+**Nhiệm vụ:**
+1. Xác định người dùng (giảng viên, sinh viên, máy chiếu), phạm vi MVP, quy tắc nghiệp vụ (mục 3), ngoại lệ và rủi ro.
+2. Làm rõ và chốt với người dùng trước khi bắt đầu: công nghệ (stack), nhà cung cấp AI duy nhất, cách tham gia của sinh viên (ẩn danh hay nhập tên), cách triển khai demo (mạng LAN/localhost/cloud), ngôn ngữ giao diện.
+3. Soạn PRD, user story và acceptance criteria theo Given–When–Then, phủ 4 tiêu chí demo (mục 4).
+4. Review thiết kế với UI/UX; làm rõ yêu cầu với Architect, Frontend, Backend và QA.
+5. Thực hiện UAT cùng QA bằng kịch bản mẫu "TicketBox" và quyết định nghiệm thu.
+
+**Đầu ra:** PRD, user stories, acceptance criteria, business rules, backlog và biên bản UAT; các file Spec Kit (xem mục 7).
+
+**Skill & MCP cần thiết:**
+- Skill `init`: khởi tạo/cập nhật CLAUDE.md để cả team dùng chung ngữ cảnh.
+
+### 5.2. UI/UX Designer
+
+**Vai trò:** Thiết kế trải nghiệm nhất quán cho ba giao diện (laptop giảng viên, máy chiếu, điện thoại sinh viên).
+
+**Nhiệm vụ:**
+1. Dựa trên PRD để xây dựng sitemap, user flow, wireframe, mockup và design system.
+2. Thiết kế màn hình: danh sách bài giảng, trình soạn thảo, nhập PPTX, AI tạo slide/quiz và duyệt nháp, bảng điều khiển giảng viên, màn hình máy chiếu (chữ lớn, tương phản cao), giao diện điện thoại (một tay, màn hình nhỏ), báo cáo sau buổi.
+3. Mô tả đầy đủ trạng thái loading, empty, error, success, validation, đang chờ AI, AI lỗi, mất kết nối/kết nối lại, quiz đã đóng, phiên đã kết thúc.
+4. Thống nhất component, breakpoint, responsive và accessibility với Frontend.
+
+**Đầu ra:** User flow, wireframe/mockup, design system, danh sách màn hình và tài liệu bàn giao Frontend.
+
+**Skill & MCP cần thiết:**
+- Skill `design`: dựng wireframe, mockup, UI flow dạng artboard.
+- Skill `artifact-diagramming`: vẽ sitemap, user flow, sơ đồ trạng thái (vòng đời quiz, trạng thái kết nối).
+- Skill `dataviz`: thiết kế biểu đồ kết quả quiz và thống kê biểu cảm.
+- MCP Figma (nếu có): `get_design_context`, `get_screenshot`, `get_metadata`, `get_variable_defs`, `use_figma`, `generate_diagram`.
+
+### 5.3. Software Architect (trọng tâm môn Kiến trúc phần mềm)
+
+**Vai trò:** Chốt kiến trúc và giải thích hai quyết định cốt lõi của đồ án.
+
+**Nhiệm vụ:**
+1. Chọn kênh đồng bộ thời gian thực (WebSocket/SSE/dịch vụ realtime), mô hình "nguồn trạng thái duy nhất" cho phiên, cơ chế kết nối lại và khôi phục trạng thái.
+2. Thiết kế mô hình quyền: xác thực giảng viên, token tham gia của sinh viên, kiểm tra quyền phía server theo vai trò và slide đã công bố; lọc dữ liệu trước khi gửi (không rò ghi chú/slide chưa chiếu/đáp án đúng khi quiz đang mở).
+3. Thiết kế tích hợp AI qua một lớp trừu tượng (một nhà cung cấp), kiểm tra schema đầu ra, timeout/retry, và trạng thái "nháp".
+4. Thiết kế luồng nhập PPTX (trích xuất văn bản), mô hình dữ liệu, ADR (Architecture Decision Record) và sơ đồ kiến trúc.
+
+**Đầu ra:** Tài liệu kiến trúc, ADR, sơ đồ thành phần/trình tự, phần giải thích hai quyết định cho báo cáo.
+
+**Skill & MCP cần thiết:** Skill `artifact-diagramming`, `security-review`.
+
+### 5.4. Backend Developer
+
+**Vai trò:** Xây dựng API, realtime, cơ sở dữ liệu, xác thực, phân quyền và tích hợp AI.
+
+**Nhiệm vụ:**
+1. Thiết kế dữ liệu: người dùng, bài giảng, slide, câu hỏi quiz, phiên, người tham gia, đáp án nộp, câu hỏi của sinh viên, biểu cảm.
+2. Thống nhất API contract với Frontend (REST + sự kiện realtime): endpoint, payload, mã lỗi, xác thực.
+3. Triển khai validation, authorization, ràng buộc 1 lượt nộp/câu, chặn nộp sau khi đóng, lọc dữ liệu theo vai trò, logging và xử lý lỗi.
+4. Triển khai AI: tạo slide nháp từ ý tưởng, rút gọn/chia slide từ văn bản dán, tạo quiz từ slide đã chọn (kèm slide căn cứ), kiểm tra định dạng đầu ra; nhập .pptx.
+5. Viết migration, seed data (kịch bản TicketBox), unit test, integration test; không đổi API contract khi chưa thông báo Frontend, QA và PO.
+
+**Đầu ra:** Source code backend, OpenAPI/tài liệu sự kiện realtime, migration, seed, test, `.env.example` (khóa AI đặt trong biến môi trường, không commit) và hướng dẫn chạy.
+
+**Skill & MCP cần thiết:** Skill `run`, `security-review`, `code-review`.
+
+### 5.5. Frontend Developer
+
+**Vai trò:** Chuyển thiết kế thành ba giao diện responsive và tích hợp chính xác với Backend.
+
+**Nhiệm vụ:**
+1. Xây dựng routing, component dùng chung, trình soạn thảo slide, bảng điều khiển giảng viên, màn hình máy chiếu, giao diện sinh viên, form và quản lý trạng thái.
+2. Tích hợp API và kênh realtime theo contract; dùng mock đúng contract khi Backend chưa xong.
+3. Xử lý loading, empty, error, validation, mất mạng/kết nối lại, quiz đóng, phiên kết thúc.
+4. Viết component test, integration test; phối hợp QA làm E2E đa thiết bị.
+5. Kiểm tra responsive (điện thoại/máy chiếu), bàn phím và accessibility cơ bản.
+
+**Đầu ra:** Source code frontend, component library, màn hình đã tích hợp, test, `.env.example` và hướng dẫn chạy.
+
+**Skill & MCP cần thiết:** Skill `run` (bắt buộc chạy thật trước khi báo hoàn thành), `dataviz`, `security-review`, `code-review`; MCP Figma (nếu có): `get_design_context`, `download_assets`, `get_code_connect_map`.
+
+### 5.6. QA Tester
+
+**Vai trò:** Lập kế hoạch, thiết kế test case, kiểm thử, quản lý lỗi và báo cáo chất lượng.
+
+**Nhiệm vụ:**
+1. Lập Test Plan từ PRD, acceptance criteria, thiết kế và API contract.
+2. Viết test case trước khi kiểm thử; bao phủ chức năng, API, realtime, giao diện, phân quyền, responsive, E2E, trường hợp biên và regression.
+3. Ghi bug đầy đủ; sau khi sửa phải retest và regression khu vực liên quan.
+4. Cùng PO chạy kịch bản demo (1 laptop + máy chiếu + ≥ 2 điện thoại) và hỗ trợ UAT.
+
+**Mỗi test case bắt buộc có:**
+
+| Trường | Nội dung |
+|---|---|
+| Test Case ID | Mã duy nhất |
+| Requirement ID | Yêu cầu liên quan |
+| Scenario | Kịch bản kiểm thử |
+| Preconditions | Điều kiện trước |
+| Test Data | Dữ liệu kiểm thử |
+| Test Steps | Các bước thực hiện |
+| Expected Result | Kết quả mong đợi |
+| Actual Result | Kết quả thực tế |
+| Priority | High/Medium/Low |
+| Status | Pass/Fail/Blocked/Not Run |
+| Evidence/Bug ID | Bằng chứng hoặc mã lỗi |
+
+**Nhóm test case tối thiểu:**
+- Đăng ký, đăng nhập, phân quyền giảng viên/sinh viên/máy chiếu.
+- Soạn bài: 3 cách tạo slide, nhập PPTX (hợp lệ, hỏng, quá lớn), sửa slide, AI lỗi/timeout.
+- AI tạo quiz: có slide căn cứ, bắt buộc duyệt trước khi dùng, sửa đáp án.
+- Đồng bộ: đổi slide cập nhật máy chiếu/điện thoại không tải lại; vào muộn; mất mạng rồi kết nối lại.
+- Quyền xem: sinh viên không vào được slide chưa công bố, không thấy ghi chú, không gọi được lệnh điều khiển (kiểm thử trực tiếp API/WebSocket, không chỉ qua giao diện).
+- Quiz: mở/đóng/công bố; nộp trùng; nộp sau khi đóng; thay đổi đồng thời.
+- Câu hỏi và biểu cảm của sinh viên; câu hỏi chỉ hiện trên laptop theo mặc định.
+- Responsive, tương thích trình duyệt di động, xử lý lỗi và regression.
+
+**Đầu ra:** Test Plan, Test Cases, Bug Report, Test Summary Report và bằng chứng kiểm thử.
+
+**Skill & MCP cần thiết:** Skill `run`, `security-review`, `code-review`.
+
+## 6. Quy trình phối hợp
+
+1. **PO phân tích:** Soạn PRD, user story, business rules, acceptance criteria; toàn team review để phát hiện điểm thiếu hoặc mâu thuẫn.
+2. **PO + UI/UX thiết kế:** UI/UX tạo user flow và giao diện; PO xác nhận đúng nghiệp vụ; Frontend đánh giá khả năng triển khai.
+3. **Architect + Frontend + Backend thống nhất:** Chốt kiến trúc realtime, mô hình quyền và API contract trước khi phát triển.
+4. **Phát triển song song:** Backend làm API/realtime/AI; Frontend làm giao diện và mock; tích hợp theo từng module nhỏ (thứ tự gợi ý: xác thực → bài giảng/slide → phiên + đồng bộ → quiz → câu hỏi/biểu cảm → AI → nhập PPTX).
+5. **QA kiểm thử:** QA viết và chạy test case, ghi bug, theo dõi sửa lỗi, retest và regression.
+6. **QA + PO nghiệm thu:** QA lập Test Summary Report; PO thực hiện UAT bằng kịch bản demo. Tính năng chỉ hoàn thành khi QA đạt tiêu chí và PO chấp thuận.
+7. **Fix bug:** QA và PO tổng hợp lỗi, gửi lại Frontend hoặc Backend sửa, rồi nghiệm thu lại; lặp đến khi hết lỗi Critical/High.
+
+## 7. Quy trình Spec Kit (đặc tả làm nguồn sự thật)
+
+Dự án dùng GitHub Spec Kit (Spec-Driven Development). Mã nguồn chỉ được viết dựa trên các tài liệu đặc tả dưới đây, theo thứ tự:
+
+1. `/speckit.constitution`: nguyên tắc dự án (bảo mật phía server, test bắt buộc, giới hạn phạm vi MVP, không đổi API khi chưa báo PO).
+2. `/speckit.specify`: đặc tả "cái gì và tại sao" (mục 1–4), KHÔNG chọn công nghệ ở bước này.
+3. `/speckit.clarify`: PO hỏi người dùng các điểm chưa rõ (mục 5.1 nhiệm vụ 2) trước khi lập kế hoạch.
+4. `/speckit.plan`: kế hoạch kỹ thuật (stack, kiến trúc, mô hình dữ liệu, API contract, realtime) do Architect/Backend/Frontend đề xuất.
+5. `/speckit.tasks`: danh sách task có thứ tự và phụ thuộc, đánh dấu task chạy song song.
+6. `/speckit.analyze`: kiểm tra nhất quán giữa spec, plan, tasks trước khi code.
+7. `/speckit.implement`: thực thi từng task; sau mỗi module chạy test và `run` để kiểm chứng.
+
+Nếu phát hiện thiếu/mâu thuẫn trong lúc code: dừng, cập nhật spec/plan, được PO xác nhận, rồi mới sửa mã.
+
+## 8. Quy tắc bàn giao
+
+Mỗi lần bàn giao phải ghi rõ:
+- Công việc và trạng thái.
+- Đầu vào đã sử dụng và đầu ra đã tạo.
+- File hoặc tài liệu liên quan.
+- Quyết định, giả định, vấn đề và rủi ro còn lại.
+- Người nhận và hành động tiếp theo.
+
+Không tự ý thay đổi yêu cầu, thiết kế hoặc API. Mọi thay đổi phải được PO xác nhận và cập nhật vào tài liệu nguồn trước khi sửa mã hoặc test case.
+
+## 9. Definition of Done
+
+Một tính năng chỉ được đánh dấu **Done** khi:
+1. Có user story, acceptance criteria và thiết kế tương ứng.
+2. Frontend và Backend đã hoàn thành, tích hợp và có test phù hợp.
+3. Validation, phân quyền phía server và các trạng thái lỗi (gồm lỗi AI, mất kết nối) đã được kiểm tra.
+4. QA đã chạy test case; không còn lỗi Critical hoặc High.
+5. Bốn tiêu chí demo (đồng bộ, tách quyền, thu phản hồi, AI hỗ trợ thật) chạy đúng trên 1 laptop + 1 màn chiếu + ≥ 2 điện thoại.
+6. Các lỗi còn lại đã được ghi nhận và PO chấp thuận.
+7. PO xác nhận UAT; tài liệu (spec, plan, ADR, README) đã cập nhật.
+
+## 10. Lệnh thực thi cho Agent Team
+
+Trước khi bắt đầu, kiểm tra thư mục `.claude/agents/` đã có đủ 6 file `po.md`, `ui-ux.md`, `architect.md`, `backend.md`, `frontend.md`, `qa.md` theo đúng mẫu ở mục 5.0; nếu thiếu hoặc chưa khớp mô tả vai trò thì tạo/cập nhật lại trước khi spawn teammate tương ứng.
+
+Hãy triển khai dự án theo đúng vai trò và quy trình trên, bắt đầu từ quy trình Spec Kit (mục 7). PO chịu trách nhiệm điều phối: TRƯỚC KHI viết plan và code, PO phải hỏi người dùng để chốt phạm vi MVP, công nghệ, nhà cung cấp AI, cách tham gia của sinh viên, môi trường demo và tiêu chí triển khai. Mỗi teammate chỉ bàn giao khi đầu ra đủ rõ để teammate tiếp theo tiếp tục mà không phải tự đoán.
