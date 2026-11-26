@@ -31,8 +31,8 @@ export type AiSlide = z.infer<typeof aiSlide>;
 export type AiSuggestion = z.infer<typeof aiSuggestion>;
 export type AiQuestion = z.infer<typeof aiQuestion>;
 
-/** JSON schema (OpenAPI subset) gửi kèm yêu cầu để Gemini trả đúng cấu trúc. */
-export const geminiSchemas = {
+/** JSON schema mô tả cấu trúc đầu ra gửi cho nhà cung cấp AI. */
+export const jsonSchemas = {
   slides: {
     type: "object",
     properties: {

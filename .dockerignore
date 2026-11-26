@@ -1,0 +1,13 @@
+*
+!package.json
+!package-lock.json
+!next.config.ts
+!postcss.config.mjs
+!prisma.config.ts
+!prisma/
+!prisma/**
+!server.ts
+!src/
+!src/**
+!tsconfig.json
+src/generated/

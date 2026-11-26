@@ -1,6 +1,6 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-import type { AiProvider, JsonKind } from "./provider";
-import { geminiSchemas } from "./schemas";
+import { BadOutputError, type AiProvider, type JsonKind } from "./provider";
+import { jsonSchemas } from "./schemas";
 
 export class GeminiProvider implements AiProvider {
   readonly name = "gemini";
@@ -20,7 +20,7 @@ export class GeminiProvider implements AiProvider {
       config: {
         systemInstruction: system,
         responseMimeType: "application/json",
-        responseSchema: geminiSchemas[kind] as never,
+        responseSchema: jsonSchemas[kind] as never,
         temperature: 0.6,
         // soạn slide/quiz không cần suy luận dài; giảm độ trễ để nằm trong giới hạn 30 giây
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -36,5 +36,3 @@ export class GeminiProvider implements AiProvider {
     }
   }
 }
-
-export class BadOutputError extends Error {}

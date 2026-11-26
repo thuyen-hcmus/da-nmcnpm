@@ -2,8 +2,9 @@ import { z } from "zod";
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  AI_PROVIDER: z.enum(["gemini", "fake"]).default("gemini"),
+  AI_PROVIDER: z.enum(["gemini", "9router", "fake"]).default("gemini"),
   AI_API_KEY: z.string().default(""),
+  AI_BASE_URL: z.string().default(""),
   AI_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
   SESSION_SECRET: z.string().default(""),
   DATABASE_URL: z.string().min(1).default("file:./dev.db"),

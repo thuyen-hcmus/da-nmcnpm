@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { env } from "../env";
 import { AppError } from "@/shared/errors";
 import { hashToken, randomToken } from "./crypto";
 
@@ -47,7 +48,7 @@ export function cookieOptions(expiresAt: Date) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: false, // demo chạy http://localhost hoặc LAN
+    secure: env().PUBLIC_URL.startsWith("https://"),
     path: "/",
     expires: expiresAt,
   };

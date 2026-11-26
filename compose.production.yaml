@@ -1,0 +1,39 @@
+services:
+  app:
+    image: da-nmcnpm:${RELEASE_TAG:-local}
+    build: .
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:13001:3000"
+    environment:
+      AI_PROVIDER: ${AI_PROVIDER:-fake}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-gemini-3.1-flash-lite}
+      DATABASE_URL: file:/data/app.db
+      HOST: 0.0.0.0
+      PORT: "3000"
+      PUBLIC_URL: ${PUBLIC_URL:?Set the HTTPS URL for the deployment}
+    volumes:
+      - ./data:/data
+      - ./secrets:/run/secrets:ro
+    command:
+      - sh
+      - -ec
+      - |
+        SESSION_SECRET="$$(cat /run/secrets/session_secret)"
+        test -n "$$SESSION_SECRET"
+        export SESSION_SECRET
+        if [ "$$AI_PROVIDER" != fake ]; then
+          AI_API_KEY="$$(cat /run/secrets/ai_api_key)"
+          test -n "$$AI_API_KEY"
+          export AI_API_KEY
+        fi
+        ./node_modules/.bin/prisma migrate deploy
+        exec ./node_modules/.bin/tsx server.ts
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3

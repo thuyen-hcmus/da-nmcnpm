@@ -3,9 +3,10 @@ import { db } from "../db";
 import { env } from "../env";
 import { log } from "../log";
 import { AppError } from "@/shared/errors";
-import type { AiProvider, JsonKind } from "./provider";
+import { BadOutputError, type AiProvider, type JsonKind } from "./provider";
 import { FakeAiProvider } from "./fake-provider";
-import { BadOutputError, GeminiProvider } from "./gemini-provider";
+import { GeminiProvider } from "./gemini-provider";
+import { RouterProvider } from "./router-provider";
 import { aiQuiz, aiSlides, aiSuggestion } from "./schemas";
 import { ownedLecture, ownedSlide, insertSlides } from "../services/lecture-service";
 import { createQuestion } from "../services/question-service";
@@ -19,7 +20,15 @@ export function getProvider(): AiProvider {
   if (e.AI_PROVIDER === "fake") provider = new FakeAiProvider();
   else {
     if (!e.AI_API_KEY) throw new AppError("AI_ERROR", "Chưa cấu hình khóa AI (AI_API_KEY)");
-    provider = new GeminiProvider(e.AI_API_KEY, e.AI_MODEL);
+    if (e.AI_PROVIDER === "9router") {
+      const baseUrl = URL.canParse(e.AI_BASE_URL) ? new URL(e.AI_BASE_URL) : null;
+      if (!baseUrl || !["http:", "https:"].includes(baseUrl.protocol) || baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash) {
+        throw new AppError("AI_ERROR", "Cấu hình địa chỉ 9Router (AI_BASE_URL) không hợp lệ");
+      }
+      provider = new RouterProvider(baseUrl, e.AI_API_KEY, e.AI_MODEL);
+    } else {
+      provider = new GeminiProvider(e.AI_API_KEY, e.AI_MODEL);
+    }
   }
   return provider;
 }
