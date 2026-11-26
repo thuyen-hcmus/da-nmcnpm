@@ -43,19 +43,10 @@ jobs:
     concurrency:
       group: interactive-class-production
       cancel-in-progress: false
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Connect to deployment network
-        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
-        with:
-          oauth-client-id: ${{ vars.TAILSCALE_CLIENT_ID }}
-          audience: ${{ vars.TAILSCALE_AUDIENCE }}
-          tags: ${{ vars.TAILSCALE_TAGS }}
       - name: Send the tested revision to the VPS
         env:
           GH_TOKEN: ${{ github.token }}
@@ -78,6 +69,7 @@ jobs:
           printf '%s\n' "$VPS_DEPLOY_KEY" > "$ssh_dir/key"
           printf '%s\n' "$VPS_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
           git archive --format=tar.gz "$GITHUB_SHA" |
-            ssh -T -i "$ssh_dir/key" -o BatchMode=yes -o IdentitiesOnly=yes \
-              -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$ssh_dir/known_hosts" \
+            ssh -T -p 22 -i "$ssh_dir/key" -o BatchMode=yes -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+              -o "UserKnownHostsFile=$ssh_dir/known_hosts" \
               -o ConnectTimeout=15 -- "$VPS_USER@$VPS_HOST" "deploy $GITHUB_SHA"

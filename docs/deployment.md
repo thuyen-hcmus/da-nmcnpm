@@ -5,22 +5,17 @@ các bước này thành công trên `main`. Có thể chạy lại workflow t�
 Job deploy kiểm tra commit còn là đầu nhánh `main` trước khi chuyển bản phát hành.
 Local dùng Docker Compose và SQLite riêng theo [README](../README.md).
 
-## Cấu hình GitHub và Tailscale
+## Cấu hình GitHub và SSH
 
-Quản trị viên repo tạo environment `production` và giới hạn deployment ở nhánh `main`.
-Tạo identity liên kết GitHub Actions trong Tailscale với phạm vi `auth_keys`. Ràng buộc identity với
-repository và environment `production`. Cấp tag của runner quyền kết nối TCP 22 tới VPS qua tailnet.
-[Tài liệu GitHub Environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments) ·
-[Tài liệu Tailscale OIDC](https://tailscale.com/docs/integrations/github/github-action?tab=federated+oidc+identity)
+Chủ repo tạo environment `production` và giới hạn deployment ở nhánh `main`.
+GitHub Actions kết nối SSH trực tiếp đến IP public của VPS qua TCP 22.
+[Tài liệu GitHub Environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
 
 | Tên | Loại | Giá trị |
 | --- | --- | --- |
-| `TAILSCALE_CLIENT_ID` | Variable | Client ID của identity Tailscale |
-| `TAILSCALE_AUDIENCE` | Variable | Audience đã cấu hình cho identity |
-| `TAILSCALE_TAGS` | Variable | Tag của runner, ví dụ `tag:ci` |
-| `VPS_HOST` | Variable | Tên MagicDNS hoặc IP Tailscale của VPS |
+| `VPS_HOST` | Variable | Địa chỉ IP public của VPS |
 | `VPS_USER` | Variable | Tài khoản vận hành app trên VPS |
-| `VPS_KNOWN_HOSTS` | Variable | Dòng host key SSH với hostname đúng bằng `VPS_HOST`, lấy qua kết nối quản trị đã xác minh |
+| `VPS_KNOWN_HOSTS` | Variable | Dòng `known_hosts` bắt đầu bằng IP trong `VPS_HOST` và chứa host key SSH đã xác minh |
 | `VPS_DEPLOY_KEY` | Secret | Private key SSH riêng dành cho workflow production |
 
 Tài khoản deploy cần quyền Docker và quyền ghi trong `/opt/da-nmcnpm`. Cài [script triển khai](../ops/deploy-vps.sh)
