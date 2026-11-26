@@ -34,6 +34,7 @@ export function Editor({ initial }: { initial: Detail }) {
   const [suggestion, setSuggestion] = useState<{ action: string; title?: string; body?: string; notes?: string } | null>(null);
   const [aiBusy, setAiBusy] = useState<string | null>(null);
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const pendingSlidePatches = useRef(new Map<string, Partial<SerializedSlide>>());
 
   const current = slides.find((s) => s.id === currentId) ?? null;
   const approved = useMemo(() => questions.filter((q) => q.status === "APPROVED"), [questions]);
@@ -66,7 +67,12 @@ export function Editor({ initial }: { initial: Detail }) {
 
   function patchSlide(id: string, patch: Partial<SerializedSlide>) {
     setSlides((ss) => ss.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-    debounced(`slide:${id}`, () => api(`/api/slides/${id}`, { method: "PATCH", json: patch }));
+    const pending = { ...pendingSlidePatches.current.get(id), ...patch };
+    pendingSlidePatches.current.set(id, pending);
+    debounced(`slide:${id}`, () => {
+      pendingSlidePatches.current.delete(id);
+      return api(`/api/slides/${id}`, { method: "PATCH", json: pending });
+    });
   }
 
   async function addSlide(template: SlideTemplate) {

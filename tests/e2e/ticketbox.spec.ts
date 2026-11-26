@@ -2,7 +2,7 @@
  * E2E kịch bản TicketBox với 4 ngữ cảnh trình duyệt riêng: giảng viên, máy chiếu, 2 sinh viên
  * (giả lập điện thoại). Chứng minh 4 tiêu chí demo (docs/prompt.txt mục 4).
  */
-import { expect, test, devices, type Browser, type Page } from "@playwright/test";
+import { expect, test, devices, type Browser, type Page, type WebSocketRoute } from "@playwright/test";
 
 const EMAIL = "gv@demo.local";
 const PASSWORD = "matkhau123";
@@ -34,7 +34,10 @@ test("TicketBox: đồng bộ, tách quyền, thu phản hồi, AI hỗ trợ", 
 
   // sửa slide 4
   const list = page.getByLabel("Danh sách slide");
-  await list.getByRole("listitem").nth(3).getByRole("button").click();
+  const fourthSlide = list.getByRole("listitem").filter({
+    has: page.getByRole("checkbox", { name: "Chọn slide 4 để tạo quiz" }),
+  });
+  await fourthSlide.getByRole("button").click();
   await page.getByLabel("Tiêu đề").fill("Nhìn thấy ghế trống không đồng nghĩa với đã giữ được ghế");
   await page.getByRole("button", { name: "Xác nhận nội dung" }).click();
   await expect(page.getByText("Đã lưu")).toBeVisible();
@@ -60,10 +63,19 @@ test("TicketBox: đồng bộ, tách quyền, thu phản hồi, AI hỗ trợ", 
   const projCtx = await browser.newContext({ viewport: { width: 1280, height: 720 }, baseURL: test.info().project.use.baseURL });
   const projector = await projCtx.newPage();
   await projector.goto(projectorUrl!);
-  await expect(projector.getByText(code)).toBeVisible(); // QR + mã khi mời vào lớp
+  await expect(projector.getByText(code, { exact: true })).toBeVisible(); // QR + mã khi mời vào lớp
 
   const s1 = await phone(browser);
   const s2 = await phone(browser);
+  const secondStudent: { offline: boolean; transport?: WebSocketRoute } = { offline: false };
+  await s2.routeWebSocket(/\/socket\.io\//, async (socket) => {
+    if (secondStudent.offline) {
+      await socket.close({ code: 1001 });
+      return;
+    }
+    secondStudent.transport = socket;
+    socket.connectToServer();
+  });
   for (const [s, name] of [[s1, "An"], [s2, "Bình"]] as const) {
     await s.goto(`/join/${code}`);
     await s.getByLabel("Tên hiển thị (không bắt buộc)").fill(name);
@@ -115,6 +127,7 @@ test("TicketBox: đồng bộ, tách quyền, thu phản hồi, AI hỗ trợ", 
   await expect(projector.getByText("Kết quả")).toHaveCount(0); // lớp chưa thấy kết quả
 
   await page.getByRole("button", { name: "Đóng quiz" }).click();
+  await expect(page.getByText("Đã đóng (lớp chưa thấy kết quả)", { exact: true })).toBeVisible();
   await expect(projector.getByText("Quiz đã đóng")).toBeVisible();
   await page.getByRole("button", { name: "Công bố kết quả lên màn chiếu" }).click();
   await expect(projector.getByText("Kết quả", { exact: true })).toBeVisible();
@@ -130,10 +143,13 @@ test("TicketBox: đồng bộ, tách quyền, thu phản hồi, AI hỗ trợ", 
   await expect(projector.getByText("Nếu hai người bấm cùng một mili giây thì sao?")).toBeVisible();
 
   // ---------- Mất kết nối rồi kết nối lại ----------
-  await s2.context().setOffline(true);
+  secondStudent.offline = true;
+  if (!secondStudent.transport) throw new Error("Sinh viên thứ hai chưa có kết nối realtime");
+  await secondStudent.transport.close({ code: 1001 });
   await expect(s2.getByText("Mất kết nối, đang kết nối lại…")).toBeVisible({ timeout: 15000 });
   await page.getByRole("button", { name: "Tiếp →" }).click();
-  await s2.context().setOffline(false);
+  await expect(page.getByText("Đang chiếu · slide 5/6")).toBeVisible();
+  secondStudent.offline = false;
   await expect(s2.getByText("Slide 5 · đang theo bài giảng")).toBeVisible({ timeout: 15000 });
 
   // ---------- Kết thúc phiên → báo cáo ----------

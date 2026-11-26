@@ -1,0 +1,31 @@
+name: da-nmcnpm-local
+
+services:
+  app:
+    image: node:24-bookworm
+    init: true
+    working_dir: /app
+    ports:
+      - "127.0.0.1:${LOCAL_PORT:-3000}:3000"
+    environment:
+      AI_PROVIDER: ${AI_PROVIDER:-fake}
+      DATABASE_URL: ${LOCAL_DATABASE_URL:-file:./dev.db}
+      HOST: 0.0.0.0
+      PORT: "3000"
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${LOCAL_PORT:-3000}}
+      NEXT_DIST_DIR: .next-local
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - .:/app
+      - packages:/app/node_modules
+    command:
+      - sh
+      - -ec
+      - |
+        npm ci --no-audit --no-fund
+        npx --no-install prisma generate
+        npx --no-install prisma migrate deploy
+        exec npm run dev
+
+volumes:
+  packages:

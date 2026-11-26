@@ -17,13 +17,24 @@ biểu cảm; giảng viên quyết định khi nào công bố kết quả.
 Next.js 16 (App Router, TypeScript) + Socket.IO 4 trên cùng một server Node (`server.ts`), SQLite qua
 Prisma 7, Google Gemini (`@google/genai`), Tailwind CSS 4, Vitest, Playwright.
 
-## Cài đặt và chạy
+## Chạy local
 
-Yêu cầu Node.js ≥ 20.9.
+Dùng Docker Compose với Node.js 24, SQLite và AI giả lập theo mặc định.
 
 ```bash
-npm install
-cp .env.example .env      # điền AI_API_KEY và SESSION_SECRET
+docker compose -f compose.local.yaml up -d
+docker compose -f compose.local.yaml logs -f app
+```
+
+Ứng dụng mở tại [localhost:3000](http://localhost:3000). Có thể đặt `LOCAL_PORT` nếu muốn dùng cổng khác.
+Để tạo lại tài khoản demo và bài giảng mẫu TicketBox, chạy `docker compose -f compose.local.yaml exec app npm run db:seed`.
+
+Nếu chạy trực tiếp với Node.js 24, dùng các lệnh sau.
+
+```bash
+npm ci
+cp .env.example .env
+npx prisma generate
 npx prisma migrate deploy
 npm run db:seed           # tạo dữ liệu mẫu TicketBox
 npm run dev               # http://localhost:3000
@@ -63,6 +74,11 @@ npm run typecheck
 
 `test:e2e` tự chạy một server riêng ở cổng 3100 với CSDL `e2e.db` và AI giả lập. Lần đầu cần
 `npx playwright install chromium`.
+
+## CI/CD
+
+GitHub Actions kiểm tra pull request và các nhánh được push. Job production triển khai bản đã qua
+kiểm thử từ `main` lên VPS. Xem [cách cấu hình CI/CD và khôi phục bản phát hành](docs/deployment.md).
 
 ## Cấu trúc
 

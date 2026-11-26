@@ -1,0 +1,83 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Check application
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AI_PROVIDER: fake
+      DATABASE_URL: file:./ci.db
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc1b9c38 # v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx --no-install prisma generate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx --no-install playwright install --with-deps --only-shell chromium
+      - run: npm run test:e2e
+      - run: docker build -t da-nmcnpm:ci .
+
+  production:
+    name: Deploy to VPS
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: production
+    concurrency:
+      group: interactive-class-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Connect to deployment network
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
+        with:
+          oauth-client-id: ${{ vars.TAILSCALE_CLIENT_ID }}
+          audience: ${{ vars.TAILSCALE_AUDIENCE }}
+          tags: ${{ vars.TAILSCALE_TAGS }}
+      - name: Send the tested revision to the VPS
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_KNOWN_HOSTS: ${{ vars.VPS_KNOWN_HOSTS }}
+          VPS_DEPLOY_KEY: ${{ secrets.VPS_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          main_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          if [[ "$main_sha" != "$GITHUB_SHA" ]]; then
+            printf 'Skipping %s because main has advanced to %s\n' "$GITHUB_SHA" "$main_sha"
+            exit 0
+          fi
+          : "${VPS_HOST:?VPS_HOST is required}" "${VPS_USER:?VPS_USER is required}"
+          : "${VPS_KNOWN_HOSTS:?VPS_KNOWN_HOSTS is required}" "${VPS_DEPLOY_KEY:?VPS_DEPLOY_KEY is required}"
+          umask 077
+          ssh_dir=$(mktemp -d)
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          printf '%s\n' "$VPS_DEPLOY_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          git archive --format=tar.gz "$GITHUB_SHA" |
+            ssh -T -i "$ssh_dir/key" -o BatchMode=yes -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$ssh_dir/known_hosts" \
+              -o ConnectTimeout=15 -- "$VPS_USER@$VPS_HOST" "deploy $GITHUB_SHA"
